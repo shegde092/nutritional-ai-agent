@@ -1,111 +1,79 @@
-import sys
 from fpdf import FPDF
 
 class ConceptNotePDF(FPDF):
     def header(self):
-        # Header banner at the top of each page (matching style)
-        self.set_fill_color(16, 185, 129) # SDG 3 Green (Emerald)
+        # Emerald Green banner for SDG 3
+        self.set_fill_color(16, 185, 129)
         self.rect(0, 0, 210, 20, "F")
         
         self.set_text_color(255, 255, 255)
-        self.set_font("Helvetica", "B", 13)
-        self.set_xy(10, 5)
-        self.cell(0, 10, "CONCEPT NOTE: NUTRITIONAL AI AGENT (SDG 3)", 0, 1, "C")
+        self.set_font("Helvetica", "B", 14)
+        self.cell(0, 6, "PROJECT CONCEPT NOTE", 0, 1, "C")
+        self.set_font("Helvetica", "I", 9)
+        self.cell(0, 4, "Nutritional AI Agent | Aligned with UN Sustainable Development Goal 3", 0, 1, "C")
         self.ln(10)
 
     def footer(self):
         self.set_y(-15)
         self.set_font("Helvetica", "I", 8)
-        self.set_text_color(100, 116, 139)
-        self.cell(0, 10, f"Page {self.page_no()} | IBM SkillsBuild Deliverable", 0, 0, "C")
+        self.set_text_color(128, 128, 128)
+        self.cell(0, 10, f"Page {self.page_no()}", 0, 0, "C")
 
 def create_concept_note():
     pdf = ConceptNotePDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
     
-    # 1. Project Title
-    pdf.set_font("Helvetica", "B", 12)
-    pdf.set_text_color(16, 185, 129)
-    pdf.cell(0, 8, "1. Project Overview", 0, 1)
+    # Metadata Block
+    pdf.set_fill_color(248, 250, 252) # Slate 50
+    pdf.rect(10, 25, 190, 32, "F")
+    pdf.set_xy(12, 27)
+    pdf.set_font("Helvetica", "B", 10)
+    pdf.set_text_color(15, 23, 42) # Slate 900
+    pdf.cell(0, 5, "PROJECT METADATA", 0, 1)
+    pdf.set_font("Helvetica", "", 9)
+    pdf.cell(0, 5, "Project Title: Nutritional AI Agent", 0, 1)
+    pdf.cell(0, 5, "Author: [Your Name] | College: [Your College Name]", 0, 1)
+    pdf.cell(0, 5, "Goal Chosen: UN Sustainable Development Goal 3 (Good Health and Well-being)", 0, 1)
+    pdf.ln(8)
     
-    pdf.set_font("Helvetica", "", 10)
-    pdf.set_text_color(55, 65, 81)
-    overview_text = (
-        "- Project Name: Nutritional AI Agent\n"
-        "- Core Scope: Autonomous and personalized daily dietary planning and recipes.\n"
-        "- UN SDG Alignment: Goal 3 (Good Health and Well-being).\n"
-        "- Technologies: Streamlit, LangGraph (StateGraph), LangChain, Groq API (Llama 3.3 70B)."
-    )
-    pdf.multi_cell(0, 5, overview_text)
-    pdf.ln(4)
+    sections = [
+        ("1. Executive Summary", 
+         "The Nutritional AI Agent is an autonomous, conversational diet-planning system designed to provide personalized, healthy recipe suggestions and macronutrient calculations. Built on top of Streamlit, LangGraph, and LangChain, and powered by the Groq API (llama-3.3-70b-versatile), this agent acts as a stateful nutrition researcher and copywriter, mapping out custom nutritional needs dynamically to democratize access to dietetic healthcare."),
+        
+        ("2. Problem Statement", 
+         "Traditional diet tracking relies heavily on manual calorie logging which has high user friction and failure rates. Standard calorie apps do not generate optimal, customized meal suggestions but merely record historical intake. The lack of scalable, automated, and context-specific nutrition guidance prevents individuals from effectively managing metabolic goals, contributing to global obesity and diabetes rates (critical indicators under UN SDG 3)."),
+        
+        ("3. Project Objectives", 
+         "- Automate personalized dietary planning by extracting metabolic user features (Age, Weight, Goal, Restrictions) in real-time.\n"
+         "- Implement a sequential, multi-agent state graph (LangGraph) to safely decouple the nutritional research phase from the content formatting phase.\n"
+         "- Leverage the Groq Llama 3 model to generate optimal daily meal plans, complete with step-by-step recipes and a macronutrient target summary table.\n"
+         "- Design a highly responsive Streamlit user interface featuring premium, responsive CSS styles."),
+        
+        ("4. System Architecture & Methodology", 
+         "The system is built as a stateful multi-agent system:\n"
+         "- State Memory: A LangGraph TypedDict manages user physical parameters, raw recipes, and final formatted outputs.\n"
+         "- Extraction Agent (Node 1): Gathers user features and queries Groq to draft a detailed calorie and meal plan.\n"
+         "- Formatting Agent (Node 2): Takes the raw draft and structures it into Breakfast, Lunch, Dinner, and daily macro tables.\n"
+         "- UI Wrapper: Streamlit hosts the sidebar inputs and renders the formatted markdown output with custom CSS."),
+        
+        ("5. SDG 3 Alignment & Expected Impact", 
+         "By automating expert-level dietary planning, this project directly supports UN Sustainable Development Goal 3 (Good Health and Well-being). It increases nutrition literacy, reduces the financial barrier to nutritional advice, and supports preventative care by helping users prevent obesity-related and cardiovascular conditions. The solution is highly scalable and non-invasive, allowing users worldwide to optimize their eating habits autonomously."),
+        
+        ("6. Future Scope", 
+         "Future enhancements will involve integrating wearable devices (e.g., Fitbit, Apple Watch) to import active caloric expenditure, utilizing Vision LLMs to allow users to upload photos of their meals for automated ingredient extraction, and expanding Watson Studio analytics to train custom metabolic rate prediction models.")
+    ]
     
-    # 2. Introduction & Background
-    pdf.set_font("Helvetica", "B", 12)
-    pdf.set_text_color(16, 185, 129)
-    pdf.cell(0, 8, "2. Introduction & Relevance to SDG 3", 0, 1)
-    
-    pdf.set_font("Helvetica", "", 10)
-    pdf.set_text_color(55, 65, 81)
-    intro_text = (
-        "Good Health and Well-being (UN SDG 3) emphasizes healthy lifestyles and disease mitigation. "
-        "Metabolic health is directly determined by dietary intake, yet obesity and malnutrition affect "
-        "millions worldwide. Standard tools fail because manual logs require high cognitive friction and "
-        "do not provide personalized, context-aware suggestions. This project implements a conversational, "
-        "agentic solution that autonomously calculates nutrient requirements and designs complete daily recipe plans."
-    )
-    pdf.multi_cell(0, 5, intro_text)
-    pdf.ln(4)
-    
-    # 3. Problem Statement & Specific Goals
-    pdf.set_font("Helvetica", "B", 12)
-    pdf.set_text_color(16, 185, 129)
-    pdf.cell(0, 8, "3. Problem Statement & System Objectives", 0, 1)
-    
-    pdf.set_font("Helvetica", "", 10)
-    pdf.set_text_color(55, 65, 81)
-    problem_text = (
-        "- The Objective: Develop an autonomous AI system that extracts personal metabolic metrics (Age, Weight, Goal, Allergies) and compiles highly optimal meal structures.\n"
-        "- Specific Technical Goals:\n"
-        "  - Automate user feature processing through a secure Streamlit UI sidebar.\n"
-        "  - Coordinate nodes in a sequential StateGraph to guarantee clean recipe outputs.\n"
-        "  - Format recipes into structured target calorie breakdown tables (Breakfast, Lunch, Dinner)."
-    )
-    pdf.multi_cell(0, 5, problem_text)
-    pdf.ln(4)
-    
-    # 4. Methodology & Solution Architecture
-    pdf.set_font("Helvetica", "B", 12)
-    pdf.set_text_color(16, 185, 129)
-    pdf.cell(0, 8, "4. Technical Methodology & Solution Architecture", 0, 1)
-    
-    pdf.set_font("Helvetica", "", 10)
-    pdf.set_text_color(55, 65, 81)
-    architecture_text = (
-        "The system utilizes a modern agentic AI architecture with a sequential dual-agent LangGraph workflow:\n"
-        "1. User Interface (Streamlit): Collects physical parameters and fitness targets safely in the sidebar.\n"
-        "2. State Management (TypedDict): Passes feature attributes dynamically across nodes.\n"
-        "3. Extraction Node (Dietary Researcher): Prompts Groq API (llama-3.3-70b-versatile) to run clinical diet research and output ingredients, portion sizes, and health rationales.\n"
-        "4. Formatting Node (Content Writer): Re-writes raw text into clean, markdown-compliant tables.\n"
-        "5. Output Render: Main content area updates asynchronously showing the complete recipes."
-    )
-    pdf.multi_cell(0, 5, architecture_text)
-    pdf.ln(4)
-    
-    # 5. Tools and Future Scope
-    pdf.set_font("Helvetica", "B", 12)
-    pdf.set_text_color(16, 185, 129)
-    pdf.cell(0, 8, "5. Development Tools & Future Scope", 0, 1)
-    
-    pdf.set_font("Helvetica", "", 10)
-    pdf.set_text_color(55, 65, 81)
-    future_text = (
-        "- Core Stack: Python, Streamlit, LangGraph, LangChain, Groq API (Llama 3.3 70B).\n"
-        "- IBM Cloud & Watson Integration Concept: Uses IBM Cloud Code Engine for serverless Streamlit hosting and IBM Cloud Object Storage for logging recipes.\n"
-        "- Future Work: Integrate wearable sensors (e.g. Fitbit/Apple Watch) for dynamic heart-rate/activity-adjusted calorie models, use Vision LLMs to log meal photographs, and train Watson Studio predictors for custom BMR estimation."
-    )
-    pdf.multi_cell(0, 5, future_text)
-    
+    for title, text in sections:
+        pdf.set_font("Helvetica", "B", 11)
+        pdf.set_text_color(16, 185, 129)
+        pdf.cell(0, 6, title, 0, 1)
+        
+        pdf.set_font("Helvetica", "", 9.5)
+        pdf.set_text_color(51, 65, 85)
+        pdf.multi_cell(0, 5, text)
+        pdf.ln(4)
+        
     pdf.output("Concept_Note.pdf")
     print("Concept_Note.pdf successfully generated.")
 

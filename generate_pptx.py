@@ -361,8 +361,38 @@ def create_ibm_pitch_deck():
         ]
     })
     
+    # ----------------------------------------------------
+    # Slide 13: What to submit ?
+    # ----------------------------------------------------
+    slide13 = prs.slides.add_slide(prs.slide_layouts[6])
+    apply_background(slide13, LIGHT_BG)
+    add_header_banner(slide13, "What to submit ?")
+    
+    content_box = slide13.shapes.add_textbox(Inches(0.8), Inches(2.2), Inches(11.733), Inches(4.5))
+    tf = content_box.text_frame
+    tf.word_wrap = True
+    tf.margin_left = Inches(0.1)
+    tf.margin_right = Inches(0.1)
+    tf.margin_top = Inches(0.1)
+    tf.margin_bottom = Inches(0.1)
+    
+    submissions = [
+        "• Lean Canvas PDF",
+        "• Concept Note",
+        "• Power point Presentation"
+    ]
+    
+    for idx, sub in enumerate(submissions):
+        p = tf.add_paragraph() if idx > 0 else tf.paragraphs[0]
+        p.text = sub
+        p.font.name = "Arial"
+        p.font.size = Pt(26)
+        p.font.bold = True
+        p.font.color.rgb = DARK_BLUE
+        p.space_after = Pt(20)
+        
     prs.save("Pitch_Deck.pptx")
-    print("Pitch_Deck.pptx successfully generated with 12 slides.")
+    print("Pitch_Deck.pptx successfully generated with 13 slides.")
 
 if __name__ == "__main__":
     create_ibm_pitch_deck()
