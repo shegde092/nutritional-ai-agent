@@ -86,9 +86,9 @@ def create_ibm_pitch_deck():
     tf_details.word_wrap = True
     
     metadata = [
-        ("Full Name:", "[Your Full Name Here]"),
+        ("Full Names:", "soujanya k hegde and mohammed umar F"),
+        ("College Name:", "cambridge institue of technology"),
         ("Registered Mail ID:", "[Your Registered Mail ID Here]"),
-        ("College Name:", "[Your College Name Here]"),
         ("Mob No.:", "[Your Mobile Number Here]"),
         ("IBM SkillsBuild Platform Mail ID:", "[Your SkillsBuild Platform Mail ID Here]")
     ]

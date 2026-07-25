@@ -26,16 +26,17 @@ def create_concept_note():
     
     # Metadata Block
     pdf.set_fill_color(248, 250, 252) # Slate 50
-    pdf.rect(10, 25, 190, 32, "F")
+    pdf.rect(10, 25, 190, 34, "F")
     pdf.set_xy(12, 27)
     pdf.set_font("Helvetica", "B", 10)
     pdf.set_text_color(15, 23, 42) # Slate 900
     pdf.cell(0, 5, "PROJECT METADATA", 0, 1)
     pdf.set_font("Helvetica", "", 9)
     pdf.cell(0, 5, "Project Title: Nutritional AI Agent", 0, 1)
-    pdf.cell(0, 5, "Author: [Your Name] | College: [Your College Name]", 0, 1)
+    pdf.cell(0, 5, "Authors: soujanya k hegde and mohammed umar F", 0, 1)
+    pdf.cell(0, 5, "College: cambridge institue of technology", 0, 1)
     pdf.cell(0, 5, "Goal Chosen: UN Sustainable Development Goal 3 (Good Health and Well-being)", 0, 1)
-    pdf.ln(8)
+    pdf.ln(10)
     
     sections = [
         ("1. Executive Summary", 
