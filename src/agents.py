@@ -20,6 +20,38 @@ def get_groq_api_key() -> str:
     return api_key or ""
 
 
+def invoke_groq_chain(prompt_template, input_data: dict, api_key: str, temperature: float = 0.5):
+    """
+    Invokes the LangChain Groq model with automatic model fallback resilience
+    if a specific model ID is missing or deprecated on Groq Cloud.
+    """
+    candidate_models = [
+        "llama-3.3-70b-versatile",
+        "llama-3.1-70b-versatile",
+        "llama3-70b-8192",
+        "llama-3.1-8b-instant",
+        "mixtral-8x7b-32768"
+    ]
+    last_exception = None
+    for model_name in candidate_models:
+        try:
+            llm = ChatGroq(
+                model_name=model_name,
+                api_key=api_key,
+                temperature=temperature
+            )
+            chain = prompt_template | llm
+            return chain.invoke(input_data)
+        except Exception as e:
+            last_exception = e
+            err_str = str(e).lower()
+            if "model_not_found" in err_str or "404" in err_str or "does not exist" in err_str:
+                continue
+            # If it's a non-404 error (e.g. rate limit, auth error), break immediately
+            break
+    raise last_exception
+
+
 def extraction_agent_node(state: AgentState) -> Dict[str, Any]:
     """
     Node 1: Extraction Agent
@@ -28,12 +60,6 @@ def extraction_agent_node(state: AgentState) -> Dict[str, Any]:
     api_key = get_groq_api_key()
     if not api_key:
         return {"raw_recipe": "ERROR: Groq API Key is not set."}
-
-    llm = ChatGroq(
-        model_name="llama-3.3-70b-versatile",
-        api_key=api_key,
-        temperature=0.5
-    )
 
     prompt_template = ChatPromptTemplate.from_messages([
         ("system", (
@@ -54,15 +80,18 @@ def extraction_agent_node(state: AgentState) -> Dict[str, Any]:
         ))
     ])
 
-    chain = prompt_template | llm
-
     try:
-        response = chain.invoke({
-            "age": state["age"],
-            "weight": state["weight"],
-            "goal": state["goal"],
-            "dietary_restrictions": state["dietary_restrictions"]
-        })
+        response = invoke_groq_chain(
+            prompt_template=prompt_template,
+            input_data={
+                "age": state["age"],
+                "weight": state["weight"],
+                "goal": state["goal"],
+                "dietary_restrictions": state["dietary_restrictions"]
+            },
+            api_key=api_key,
+            temperature=0.5
+        )
         return {"raw_recipe": response.content}
     except Exception as e:
         return {"raw_recipe": f"ERROR: Extraction failed due to: {str(e)}"}
@@ -81,12 +110,6 @@ def formatting_agent_node(state: AgentState) -> Dict[str, Any]:
     if raw_recipe.startswith("ERROR:"):
         return {"formatted_meal_plan": raw_recipe}
 
-    llm = ChatGroq(
-        model_name="llama-3.3-70b-versatile",
-        api_key=api_key,
-        temperature=0.2
-    )
-
     prompt_template = ChatPromptTemplate.from_messages([
         ("system", (
             "You are a Senior Technical Writer and Content Designer. "
@@ -104,10 +127,13 @@ def formatting_agent_node(state: AgentState) -> Dict[str, Any]:
         ("user", "Here is the raw meal plan:\n\n{raw_recipe}")
     ])
 
-    chain = prompt_template | llm
-
     try:
-        response = chain.invoke({"raw_recipe": raw_recipe})
+        response = invoke_groq_chain(
+            prompt_template=prompt_template,
+            input_data={"raw_recipe": raw_recipe},
+            api_key=api_key,
+            temperature=0.2
+        )
         return {"formatted_meal_plan": response.content}
     except Exception as e:
         return {"formatted_meal_plan": f"ERROR: Formatting failed due to: {str(e)}"}
