@@ -22,35 +22,36 @@ def get_groq_api_key() -> str:
 
 def invoke_groq_chain(prompt_template, input_data: dict, api_key: str, temperature: float = 0.5):
     """
-    Invokes the LangChain Groq model with automatic model fallback resilience
-    if a specific model ID is missing or deprecated on Groq Cloud.
+    Invokes LangChain Groq with fallback across currently supported Groq models.
     """
     candidate_models = [
         "llama-3.3-70b-versatile",
         "llama-3.1-8b-instant",
-        "llama3-8b-8192",
-        "gemma2-9b-it",
     ]
     last_exception = None
     for model_name in candidate_models:
         try:
+            print(f"Trying Groq model: {model_name}")
             llm = ChatGroq(
-                model_name=model_name,
+                model=model_name,
                 api_key=api_key,
-                temperature=temperature
+                temperature=temperature,
             )
             chain = prompt_template | llm
-            return chain.invoke(input_data)
+            response = chain.invoke(input_data)
+            print(f"Successfully used: {model_name}")
+            return response
         except Exception as e:
             last_exception = e
             err_str = str(e).lower()
-            # Continue to next model if this one is unavailable or decommissioned
+            print(f"Model {model_name} failed: {e}")
+            # Only fall back for model availability/deprecation problems
             if any(keyword in err_str for keyword in [
-                "model_not_found", "404", "does not exist",
-                "model_decommissioned", "decommissioned", "no longer supported"
+                "model_not_found", "model_decommissioned", "decommissioned",
+                "no longer supported", "does not exist", "404", "not found",
             ]):
                 continue
-            # For auth errors or other hard failures, stop immediately
+            # Authentication, rate-limit, or other hard failures — stop immediately
             break
     raise last_exception
 
