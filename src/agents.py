@@ -28,9 +28,8 @@ def invoke_groq_chain(prompt_template, input_data: dict, api_key: str, temperatu
     candidate_models = [
         "llama-3.3-70b-versatile",
         "llama-3.1-8b-instant",
-        "llama3-70b-8192",
         "llama3-8b-8192",
-        "mixtral-8x7b-32768"
+        "gemma2-9b-it",
     ]
     last_exception = None
     for model_name in candidate_models:
@@ -45,9 +44,13 @@ def invoke_groq_chain(prompt_template, input_data: dict, api_key: str, temperatu
         except Exception as e:
             last_exception = e
             err_str = str(e).lower()
-            if "model_not_found" in err_str or "404" in err_str or "does not exist" in err_str:
+            # Continue to next model if this one is unavailable or decommissioned
+            if any(keyword in err_str for keyword in [
+                "model_not_found", "404", "does not exist",
+                "model_decommissioned", "decommissioned", "no longer supported"
+            ]):
                 continue
-            # If it's a non-404 error (e.g. rate limit, auth error), break immediately
+            # For auth errors or other hard failures, stop immediately
             break
     raise last_exception
 
