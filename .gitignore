@@ -1,4 +1,36 @@
-.streamlit/
+# Python virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python byte-code / cache
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+
+# Environment & Secrets
 .env
+.env.local
+.env.*.local
+
+# Streamlit config & secrets
+.streamlit/secrets.toml
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+ehthumbs.db
+Icon?
+Thumbs.db
+
+# Project generated temp artifacts
+tmp/
+*.log

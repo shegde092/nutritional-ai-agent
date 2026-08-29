@@ -1,3 +1,4 @@
+import os
 from fpdf import FPDF
 
 class ConceptNotePDF(FPDF):
@@ -75,8 +76,10 @@ def create_concept_note():
         pdf.multi_cell(0, 5, text)
         pdf.ln(4)
         
-    pdf.output("Concept_Note.pdf")
-    print("Concept_Note.pdf successfully generated.")
+    os.makedirs("docs", exist_ok=True)
+    output_path = os.path.join("docs", "Concept_Note.pdf")
+    pdf.output(output_path)
+    print(f"{output_path} successfully generated.")
 
 if __name__ == "__main__":
     create_concept_note()

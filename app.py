@@ -1,9 +1,11 @@
 import os
 import streamlit as st
-from typing import TypedDict, Dict, Any
-from langgraph.graph import StateGraph, START, END
-from langchain_groq import ChatGroq
-from langchain_core.prompts import ChatPromptTemplate
+from dotenv import load_dotenv
+
+# Load environment variables from .env file if available
+load_dotenv()
+
+from src.graph import get_nutrition_graph
 
 # 1. Page Configuration and Custom CSS
 st.set_page_config(
@@ -94,138 +96,25 @@ if "groq_api_key" not in st.session_state:
 # If we don't have it in session state, try reading from secrets / env
 if not st.session_state["groq_api_key"]:
     candidate_key = None
-    if "GROQ_API_KEY" in st.secrets:
-        candidate_key = st.secrets["GROQ_API_KEY"]
-    else:
+    try:
+        if "GROQ_API_KEY" in st.secrets:
+            candidate_key = st.secrets["GROQ_API_KEY"]
+    except Exception:
+        pass
+
+    if not candidate_key:
         candidate_key = os.environ.get("GROQ_API_KEY")
         
     # Ignore empty or placeholder values
     if candidate_key and "YOUR_GROQ" not in candidate_key and candidate_key.strip() != "":
         st.session_state["groq_api_key"] = candidate_key
+        os.environ["GROQ_API_KEY"] = candidate_key
 
 # Define a helper variable for nodes to access
 groq_api_key = st.session_state["groq_api_key"]
 
-# 3. LangGraph State Memory Definition
-class AgentState(TypedDict):
-    age: int
-    weight: float
-    goal: str
-    dietary_restrictions: str
-    raw_recipe: str
-    formatted_meal_plan: str
 
-# 4. LangGraph Nodes Definition
-
-def extraction_agent_node(state: AgentState) -> Dict[str, Any]:
-    """
-    Node 1: Extraction Agent
-    Acts as a professional dietary researcher to generate a nutritional recipe.
-    """
-    api_key = st.session_state.get("groq_api_key")
-    if not api_key:
-        return {"raw_recipe": "ERROR: Groq API Key is not set."}
-        
-    # Initialize LangChain Groq Chat model
-    llm = ChatGroq(
-        model_name="llama-3.3-70b-versatile",
-        api_key=api_key,
-        temperature=0.5
-    )
-    
-    # Formulate prompts
-    prompt_template = ChatPromptTemplate.from_messages([
-        ("system", (
-            "You are an expert Clinical Nutritionist and Dietary Researcher. "
-            "Your task is to design a highly optimal, healthy meal plan for a single day based strictly on the user's metrics: Age, Weight, Fitness Goal, and Dietary Restrictions. "
-            "You must prioritize foods that align with UN Sustainable Development Goal 3 (Good Health and Well-being) by emphasizing balanced, clean, and nutrient-dense whole foods. "
-            "Provide clear portions, ingredients, and the scientific rationale for why these choices support their specific fitness goals."
-        )),
-        ("user", (
-            "Create a personalized daily meal recipe plan for this user profile:\n"
-            "- Age: {age} years old\n"
-            "- Weight: {weight} kg\n"
-            "- Fitness Goal: {goal}\n"
-            "- Dietary Restrictions: {dietary_restrictions}\n\n"
-            "Return a complete breakdown for Breakfast, Lunch, and Dinner with detailed recipes and estimated macronutrients."
-        ))
-    ])
-    
-    chain = prompt_template | llm
-    
-    try:
-        response = chain.invoke({
-            "age": state["age"],
-            "weight": state["weight"],
-            "goal": state["goal"],
-            "dietary_restrictions": state["dietary_restrictions"]
-        })
-        return {"raw_recipe": response.content}
-    except Exception as e:
-        return {"raw_recipe": f"ERROR: Extraction failed due to: {str(e)}"}
-
-def formatting_agent_node(state: AgentState) -> Dict[str, Any]:
-    """
-    Node 2: Formatting Agent
-    Transforms raw research output into a beautifully structured, highly-readable Markdown plan.
-    """
-    api_key = st.session_state.get("groq_api_key")
-    if not api_key:
-        return {"formatted_meal_plan": "ERROR: Groq API Key is not set."}
-        
-    raw_recipe = state.get("raw_recipe", "")
-    if raw_recipe.startswith("ERROR:"):
-        return {"formatted_meal_plan": raw_recipe}
-        
-    # Initialize LangChain Groq Chat model
-    llm = ChatGroq(
-        model_name="llama-3.3-70b-versatile",
-        api_key=api_key,
-        temperature=0.2
-    )
-    
-    prompt_template = ChatPromptTemplate.from_messages([
-        ("system", (
-            "You are a Senior Technical Writer and Content Designer. "
-            "Take the raw meal plan recipe content and structure it into a stunning, user-friendly Markdown document. "
-            "Follow this exact structure:\n"
-            "1. Main Title: 🥗 Your Personalized UN SDG 3 Nutrition Plan\n"
-            "2. **Daily Macronutrient Target Summary**: Format this as a clean markdown table showing Calories, Protein (g), Carbs (g), and Fats (g).\n"
-            "3. **Breakfast**, **Lunch**, and **Dinner** sections. For each, show:\n"
-            "   - Emojis and engaging names\n"
-            "   - Cook/Preparation Time\n"
-            "   - Ingredients checklist\n"
-            "   - Clean step-by-step instructions\n"
-            "4. **Nutrition & Well-being Alignment**: Explain how this plan specifically supports UN SDG 3 (Good Health and Well-being) for their fitness goal."
-        )),
-        ("user", "Here is the raw meal plan:\n\n{raw_recipe}")
-    ])
-    
-    chain = prompt_template | llm
-    
-    try:
-        response = chain.invoke({"raw_recipe": raw_recipe})
-        return {"formatted_meal_plan": response.content}
-    except Exception as e:
-        return {"formatted_meal_plan": f"ERROR: Formatting failed due to: {str(e)}"}
-
-# 5. Graph Compilation
-def get_nutrition_graph():
-    # Build LangGraph workflow
-    workflow = StateGraph(AgentState)
-    
-    # Register the nodes
-    workflow.add_node("extraction", extraction_agent_node)
-    workflow.add_node("formatting", formatting_agent_node)
-    
-    # Establish sequential flow
-    workflow.add_edge(START, "extraction")
-    workflow.add_edge("extraction", "formatting")
-    workflow.add_edge("formatting", END)
-    
-    return workflow.compile()
-
-# 6. Streamlit User Interface
+# 3. Streamlit User Interface
 def main():
     st.markdown('<h1 class="hero-title">🥗 Nutritional AI Agent</h1>', unsafe_allow_html=True)
     st.markdown('<p class="hero-subtitle">Promoting Good Health & Well-being (UN SDG 3) through Personalized Nutrition</p>', unsafe_allow_html=True)
@@ -274,10 +163,11 @@ def main():
         )
         if temp_key:
             st.session_state["groq_api_key"] = temp_key
+            os.environ["GROQ_API_KEY"] = temp_key
             st.success("API key loaded for this session! Click 'Generate Meal Plan' again.")
             st.rerun()
         else:
-            st.warning("Please configure `GROQ_API_KEY` in your `.streamlit/secrets.toml` file or paste it above to run the generator.")
+            st.warning("Please configure `GROQ_API_KEY` in your `.env` file, `.streamlit/secrets.toml`, or paste it above to run the generator.")
             st.stop()
 
     # Main Area Action
@@ -292,7 +182,7 @@ def main():
             "formatted_meal_plan": ""
         }
         
-        # Compile the graph
+        # Compile the graph from src/graph.py
         nutrition_graph = get_nutrition_graph()
         
         # Invoke the LangGraph workflow inside a streamlit spinner

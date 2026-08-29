@@ -1,3 +1,4 @@
+import os
 import sys
 from pptx import Presentation
 from pptx.util import Inches, Pt
@@ -276,7 +277,6 @@ def create_ibm_pitch_deck():
     apply_background(slide10, LIGHT_BG)
     add_header_banner(slide10, "Results & Outcomes")
     
-    # Draw a big box simulating a screenshot layout
     screenshot_placeholder = slide10.shapes.add_shape(
         MSO_SHAPE.ROUNDED_RECTANGLE, 
         Inches(1.5), Inches(1.8), Inches(10.333), Inches(4.5)
@@ -391,8 +391,10 @@ def create_ibm_pitch_deck():
         p.font.color.rgb = DARK_BLUE
         p.space_after = Pt(20)
         
-    prs.save("Pitch_Deck.pptx")
-    print("Pitch_Deck.pptx successfully generated with 13 slides.")
+    os.makedirs("docs", exist_ok=True)
+    output_path = os.path.join("docs", "Pitch_Deck.pptx")
+    prs.save(output_path)
+    print(f"{output_path} successfully generated with 13 slides.")
 
 if __name__ == "__main__":
     create_ibm_pitch_deck()

@@ -1,3 +1,4 @@
+import os
 import sys
 from fpdf import FPDF
 
@@ -109,8 +110,10 @@ def generate_lean_canvas():
              "Freemium model (free basic meal lists, premium dynamic clinical nutrition audits).", 
              148.5, 147, 138.5, 40)
              
-    pdf.output("Lean_Canvas.pdf")
-    print("Lean_Canvas.pdf successfully written in landscape grid layout.")
+    os.makedirs("docs", exist_ok=True)
+    output_path = os.path.join("docs", "Lean_Canvas.pdf")
+    pdf.output(output_path)
+    print(f"{output_path} successfully written in landscape grid layout.")
 
 if __name__ == "__main__":
     generate_lean_canvas()
