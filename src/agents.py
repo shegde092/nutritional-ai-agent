@@ -25,8 +25,8 @@ def invoke_groq_chain(prompt_template, input_data: dict, api_key: str, temperatu
     Invokes LangChain Groq with fallback across currently supported Groq models.
     """
     candidate_models = [
-        "llama-3.3-70b-versatile",
-        "llama-3.1-8b-instant",
+        "openai/gpt-oss-20b",
+        "openai/gpt-oss-120b",
     ]
     last_exception = None
     for model_name in candidate_models:
