@@ -5,7 +5,7 @@
 [![LangGraph](https://img.shields.io/badge/LangGraph-0.0.50%2B-purple.svg)](https://www.langchain.com/langgraph)
 [![Groq](https://img.shields.io/badge/Groq-Llama--3.3--70b-orange.svg)](https://groq.com/)
 [![UN SDG 3](https://img.shields.io/badge/UN%20SDG-Goal%203%3A%20Good%20Health-10B981.svg)](https://sdgs.un.org/goals/goal3)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)
 
 An **Autonomous Dual-Agent Diet & Nutrition Planner** built with **LangGraph**, **LangChain**, and **Streamlit**, powered by **Groq** (`llama-3.3-70b-versatile`). Aligned with **UN Sustainable Development Goal 3 (Good Health and Well-being)**, this agent empowers users to make sustainable, nutrient-dense lifestyle choices tailored to their specific metabolic parameters.
 
